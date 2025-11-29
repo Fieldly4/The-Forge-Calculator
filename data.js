@@ -1,30 +1,16 @@
-// data.js - ไฟล์สำหรับแก้ไขข้อมูลแร่และรูปภาพ
-// วิธีใส่รูป: ให้ใส่ Link รูปภาพจากเว็บ หรือ ชื่อไฟล์รูปภาพในเครื่อง (เช่น "iron.png")
-
+// data.js
+// 1 Common, 2 Uncommon, 3 Rare, 4 Epic, 5 Legendary, 6 Mythical
 const oreDatabase = [
-    {
-        name: "Iron (เหล็ก)",
-        img: "https://forgewiki.org/images/thumb/a/a6/Iron_Ingot.png/120px-Iron_Ingot.png" 
-    },
-    {
-        name: "Gold (ทอง)",
-        img: "https://forgewiki.org/images/thumb/d/d1/Gold_Ingot.png/120px-Gold_Ingot.png"
-    },
-    {
-        name: "Copper (ทองแดง)",
-        img: "https://forgewiki.org/images/thumb/f/f3/Copper_Ingot.png/120px-Copper_Ingot.png"
-    },
-    {
-        name: "Tin (ดีบุก)",
-        img: "https://via.placeholder.com/50/cccccc/000000?text=Tin" // ตัวอย่างถ้าไม่มีรูป
-    },
-    {
-        name: "Bronze (สัมฤทธิ์)",
-        img: "https://via.placeholder.com/50/cd7f32/ffffff?text=Bronze"
-    },
-    // คุณสามารถก๊อปปี้ { ... }, ด้านบนมาวางต่อท้ายเพื่อเพิ่มแร่ได้เรื่อยๆ
-    {
-        name: "Void Metal",
-        img: "https://via.placeholder.com/50/330066/ffffff?text=Void"
-    }
+    { name: "Cuprite", img: "img/Cuprite.png", rarity: 4 },
+    { name: "Demonite", img: "img/Demonite.png", rarity: 6 },
+    { name: "Emerald", img: "img/Emerald.png", rarity: 4 },
+    { name: "EyeOre", img: "img/EyeOre.png", rarity: 5 },
+    { name: "Fireite", img: "img/Fireite.png", rarity: 4 },
+    { name: "Lightite", img: "img/Lightite.png", rarity: 5 },
+    { name: "Magmaite", img: "img/Magmaite.png", rarity: 5 },
+    { name: "Mythril", img: "img/Mythril.png", rarity: 5 },
+    { name: "Obsidian", img: "img/Obsidian.png", rarity: 4 },
+    { name: "Rivalite", img: "img/Rivalite.png", rarity: 4 },
+    { name: "Slimite", img: "img/Slimite.png", rarity: 4 },
+    { name: "Uranium", img: "img/Uranium.png", rarity: 5 }
 ];

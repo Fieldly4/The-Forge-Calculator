@@ -158,6 +158,25 @@
         .perfect-bar {
             background: #4caf50;
         }
+        
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px; 
+            padding: 10px;
+            background: #333;
+            border-radius: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .sort-controls label {
+            font-weight: bold; 
+            white-space: nowrap;
+        }
+        .sort-controls select {
+            padding: 8px;
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -169,8 +188,21 @@
         Target 30% Ratio = 100% Effectiveness
     </div>
 
+    <div class="sort-controls">
+        <label for="sort-by">เรียงตาม:</label>
+        <select id="sort-by" onchange="init()">
+            <option value="rarity">ความหายาก (Rarity)</option>
+            <option value="name">ชื่อ (Name)</option>
+        </select>
+        
+        <label for="sort-direction">ทิศทาง:</label>
+        <select id="sort-direction" onchange="init()">
+            <option value="asc">น้อยไปมาก (Ascending)</option>
+            <option value="desc">มากไปน้อย (Descending)</option>
+        </select>
+    </div>
     <div class="slot-container" id="inputs">
-        </div>
+    </div>
 
     <div class="results" id="results">
         <p style="text-align: center; color: #666;">เลือกแร่และใส่จำนวนเพื่อคำนวณ</p>
@@ -185,12 +217,60 @@
 
     // ตรวจสอบว่าโหลดไฟล์ data.js สำเร็จหรือไม่
     if (typeof oreDatabase === 'undefined') {
-        alert("ไม่พบไฟล์ data.js! กรุณาสร้างไฟล์ data.js ไว้ในโฟลเดอร์เดียวกัน");
+        alert("ไม่พบไฟล์ data.js! กรุณาสร้างไฟล์ data.js ไว้ในโฟลเดอร์เดียวกัน และต้องมีคุณสมบัติ 'rarity' ด้วย");
+    }
+
+    /**
+     * ฟังก์ชันจัดการการเรียงลำดับข้อมูลใน oreDatabase
+     */
+    function sortOres() {
+        const sortBy = document.getElementById('sort-by').value;
+        const sortDir = document.getElementById('sort-direction').value;
+
+        // ใช้ .slice() เพื่อคัดลอก array มา sort แทนการ sort array เดิม
+        // *ในกรณีนี้ เราใช้ sort oreDatabase ตรงๆ เพราะต้องการให้ Dropdown แสดงผลเรียงตาม
+        oreDatabase.sort((a, b) => {
+            let valA, valB;
+
+            // 1. กำหนดค่าที่จะใช้เปรียบเทียบ
+            if (sortBy === 'rarity') {
+                // สำหรับ Rarity: ตัวเลขน้อยคือ Common (asc)
+                valA = a.rarity || Infinity;
+                valB = b.rarity || Infinity;
+            } else { // sortBy === 'name'
+                // สำหรับ Name: A-Z คือ asc
+                valA = a.name;
+                valB = b.name;
+            }
+
+            let comparison = 0;
+
+            if (valA > valB) {
+                comparison = 1; // a มาทีหลัง b
+            } else if (valA < valB) {
+                comparison = -1; // a มาก่อน b
+            } else {
+                // ถ้าค่าหลักเท่ากัน ให้เรียงสำรองตามชื่อ A-Z เสมอ
+                return a.name.localeCompare(b.name);
+            }
+
+            // 2. ปรับทิศทางการเรียง
+            // ถ้าเป็น 'desc' ให้สลับผลลัพธ์
+            return sortDir === 'desc' ? comparison * -1 : comparison;
+        });
     }
 
     function init() {
         const container = document.getElementById('inputs');
         
+        // ********** ล้าง Input เดิมและเรียงลำดับใหม่ทุกครั้ง **********
+        container.innerHTML = '';
+        
+        if (typeof oreDatabase !== 'undefined') {
+            sortOres(); // เรียกใช้การเรียงลำดับ
+        }
+        // *************************************************************
+
         for (let i = 1; i <= MAX_SLOTS; i++) {
             const row = document.createElement('div');
             row.className = 'slot-row';
@@ -200,17 +280,18 @@
             imgBox.className = 'img-preview-box';
             imgBox.innerHTML = `<span id="placeholder-${i}">?</span><img id="img-${i}" src="" alt="">`;
 
-            // 2. Dropdown เลือกแร่ (ดึงจาก oreDatabase)
+            // 2. Dropdown เลือกแร่ (ดึงจาก oreDatabase ที่ถูกเรียงแล้ว)
             const select = document.createElement('select');
             select.id = `ore-${i}`;
             select.innerHTML = `<option value="">-- เลือกแร่ --</option>`;
             
-            // วนลูปเอาข้อมูลจาก data.js มาใส่ใน Dropdown
+            // วนลูปเอาข้อมูลจาก data.js ที่เรียงแล้ว มาใส่ใน Dropdown
             oreDatabase.forEach((ore, index) => {
+                // ใช้ index เดิมของ oreDatabase เป็น value เพื่อให้ยังอ้างอิงข้อมูลได้
                 select.innerHTML += `<option value="${index}">${ore.name}</option>`;
             });
 
-            // เมื่อเลือกแร่ -> เปลี่ยนรูปทันที
+            // เมื่อเลือกแร่ -> เปลี่ยนรูปทันที และคำนวณใหม่
             select.addEventListener('change', (e) => {
                 updateImage(i, e.target.value);
                 calculate();
@@ -229,7 +310,12 @@
             row.appendChild(input);
             container.appendChild(row);
         }
+
+        // ต้องเรียก calculate() เพื่ออัปเดตผลลัพธ์ทันที หากมีข้อมูลเดิมอยู่
+        calculate();
     }
+
+    // ฟังก์ชัน updateImage และ calculate ยังคงใช้โค้ดเดิม
 
     function updateImage(slotIndex, oreIndex) {
         const imgTag = document.getElementById(`img-${slotIndex}`);
@@ -237,7 +323,7 @@
         
         if (oreIndex !== "") {
             const ore = oreDatabase[oreIndex];
-            if (ore.img) {
+            if (ore && ore.img) {
                 imgTag.src = ore.img;
                 imgTag.style.display = 'block';
                 placeholder.style.display = 'none';
@@ -258,7 +344,11 @@
 
         // รวบรวมข้อมูล
         for (let i = 1; i <= MAX_SLOTS; i++) {
-            const oreIndex = document.getElementById(`ore-${i}`).value;
+            const oreIndexElement = document.getElementById(`ore-${i}`);
+            // ถ้า element ไม่พบ (ยังไม่ init) ให้ข้ามไป
+            if (!oreIndexElement) continue; 
+            
+            const oreIndex = oreIndexElement.value;
             const qty = parseFloat(document.getElementById(`qty-${i}`).value) || 0;
             
             if (qty > 0) {
@@ -266,6 +356,7 @@
             }
             
             if (oreIndex !== "" && qty > 0) {
+                // ใช้ oreIndex เพื่ออ้างอิงข้อมูลจาก oreDatabase
                 slots.push({ 
                     data: oreDatabase[oreIndex], 
                     qty: qty 
